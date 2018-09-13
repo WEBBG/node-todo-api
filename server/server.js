@@ -70,6 +70,31 @@ app.delete('/todos/:todoId', (req, res) => {
 });
 
 
+app.patch('/todos/:todoId', (req, res) => {
+    var todoId = req.params.todoId;
+    var body = _.pick(req.body, ['text', 'completed']);
+
+    if (!ObjectId.isValid(todoId)) {
+        return res.status(404).send();
+    }
+
+    if (_.isBoolean(body.completed) && body.completed) {
+        body.completedAt = new Date().getTime();
+    } else {
+        body.completed = false;
+        body.completedAt = null;
+    }
+
+    Todo.findByIdAndUpdate(todoId, { $set: body }, { new: true }).then((todo) => {
+        if (!todo) {
+            return res.status(404).send();
+        }
+
+        res.send({ todo });
+    }).catch((e) => {
+        res.status(400).send();
+    });
+});
 
 
 app.listen(3000, () => {
